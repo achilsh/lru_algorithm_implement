@@ -1,6 +1,8 @@
 /**
  * @file: lru_alg_util.hpp
- * @brief: 
+ * @brief: lru 算法模板定义文件，包括k,v模板，k/v节点存储数据结构模板
+ *       节点存储采用自定义的hashtable,未使用stl-map/unsortedmap等。
+ *       hash函数可以在子类中被替换,目前提供hash函数在文件lru_hash.hpp实现。
  * @author:  wusheng Hu
  * @version: v0x0001
  * @date: 2018-04-25

@@ -1,6 +1,15 @@
 #ifndef _LRU_HASH_HPP_ 
 #define _LRU_HASH_HPP_
 
+/**
+ * @file: lru_hash.hpp
+ * @brief: hash()算法实现，如果有更加高效，后续再增加
+ * @author:  wusheng Hu
+ * @version: v0x0001
+ * @date: 2018-04-27
+ */
+
+
 #define  __STDC_CONSTANT_MACROS
 #include <stdlib.h>
 #include <stdint.h>

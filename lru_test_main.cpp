@@ -25,19 +25,19 @@ class LruTestItem
 {
  public:
   LruTestItem(int x = 0): m_x(x)
-  {
-  }
+    {
+    }
   LruTestItem(const LruTestItem& item)
   {
-    m_x = item.m_x;      
+      m_x = item.m_x;      
   }
   LruTestItem& operator=(const LruTestItem& item)
   {
-    if (&item != this)
-    {
-        m_x = item.m_x;
-    }
-    return *this;
+      if (&item != this)
+      {
+          m_x = item.m_x;
+      }
+      return *this;
   }
 
   virtual ~LruTestItem()
@@ -56,7 +56,7 @@ class LruTestItem
 bool  TestOne()
 {
     LruAlg<std::string, LruTestItem>* pTestInstance = \
-        new LruAlgKvm<std::string, LruTestItem>( EM_HASH_fnv1_64,  LRU_TEST_LEN);
+                                                      new LruAlgKvm<std::string, LruTestItem>( EM_HASH_fnv1_64,  LRU_TEST_LEN);
     if (pTestInstance == NULL)
     {
         return false;
@@ -87,7 +87,7 @@ bool  TestOne()
 bool TestTwo(int iTestNums)
 {
     LruAlg<std::string, LruTestItem>* pTestInstance = \
-        new LruAlgKvm<std::string, LruTestItem>( EM_HASH_fnv1_64,  LRU_TEST_LEN);
+                                                      new LruAlgKvm<std::string, LruTestItem>( EM_HASH_fnv1_64,  LRU_TEST_LEN);
     if (pTestInstance == NULL)
     {
         return false;
@@ -95,7 +95,7 @@ bool TestTwo(int iTestNums)
 
     std::vector<std::string> sKeyList;
     std::vector<LruTestItem> sValList, sGetValList;
-    
+
     for (int i = 0; i < iTestNums; ++i)
     {
         std::stringstream ios;
@@ -151,7 +151,7 @@ bool TestThree()
 {
     //add + del + add + tranverse.
     LruAlg<std::string, LruTestItem>* pTestInstance = \
-        new LruAlgKvm<std::string, LruTestItem>( EM_HASH_fnv1_64,  LRU_TEST_LEN);
+                                                      new LruAlgKvm<std::string, LruTestItem>( EM_HASH_fnv1_64,  LRU_TEST_LEN);
     if (pTestInstance == NULL)
     {
         return false;
@@ -160,7 +160,7 @@ bool TestThree()
 
     std::vector<std::string> sKeyList;
     std::vector<LruTestItem> sValList, sGetValList;
-    
+
     for (int i = 0; i < iTestNums + 2; ++i)
     {
         std::stringstream ios;
@@ -170,7 +170,7 @@ bool TestThree()
     }
     std::string sDelOneKey, sDelTwoKey;
     int iDelIndexOne = 3, iDelIndexTwo = 7; //del 4th and 8th node
-    
+
     int i = 0;
     for ( ; i < iTestNums; ++i )
     {
@@ -225,7 +225,7 @@ bool TestThree()
 bool TestFour()
 {
     LruAlg<std::string, LruTestItem>* pTestInstance = \
-        new LruAlgKvm<std::string, LruTestItem>( EM_HASH_fnv1_64,  LRU_TEST_LEN);
+                                                      new LruAlgKvm<std::string, LruTestItem>( EM_HASH_fnv1_64,  LRU_TEST_LEN);
     if (pTestInstance == NULL)
     {
         return false;
@@ -233,7 +233,7 @@ bool TestFour()
     int iTestNums = LRU_TEST_LEN;
     std::vector<std::string> sKeyList;
     std::vector<LruTestItem> sValList, sGetValList;
-    
+
     for (int i = 0; i < iTestNums; ++i)
     {
         std::stringstream ios;

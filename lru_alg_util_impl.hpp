@@ -1,6 +1,15 @@
 #ifndef _lru_alg_util_impl_hpp_
 #define _lru_alg_util_impl_hpp_
 
+/**
+ * @file: lru_alg_util_impl.hpp
+ * @brief:  lru算法模板的实现文件
+ * @author:  wusheng Hu
+ * @version: v0x0001
+ * @date: 2018-04-27
+ */
+
+
 #include "LibStdCout.h"
 #include "lru_alg_util.hpp"
 

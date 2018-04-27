@@ -1,6 +1,7 @@
 /**
  * @file: lru_alg_util_hash.hpp
- * @brief: 
+ * @brief:  lru算法结合具体hash()函数实现，是lru算法模板的实例化实现。 
+ *          如果有更高效的hash()函数，可以重写该文件
  * @author:  wusheng Hu
  * @version: v0x0001
  * @date: 2018-04-27
