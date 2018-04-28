@@ -37,6 +37,32 @@ namespace LRU_ALG
       virtual ~ItemVal();
       
       bool AddLruNode(ItemVal<K,U>* pNode, int iDirection);
+      bool ResetNode()
+      {
+          UpdateOpTm(time(NULL));
+          SetLruPreNode(NULL);
+          SetLruNextNode(NULL);
+          SetQueLen(0);
+          SetHashNext(NULL);
+          if (m_pData != NULL)
+          {
+              delete m_pData; m_pData = NULL;
+          }
+          return true;
+      }
+
+      bool SetKeyVal(const K& inKey, const U& inVal)
+      {
+          m_key = inKey;
+          if (m_pData)
+          {
+              delete m_pData;
+              m_pData = NULL;
+          }
+          m_pData = new U(inVal);
+          return true;
+      }
+
       void UpdateOpTm(uint32_t uiTm)
       {
         if (uiTm == -1)
@@ -123,7 +149,7 @@ namespace LRU_ALG
 
       ItemVal<K,U>* GetItemFromMem(const K& inKey);
       bool AddItemIntoMem(const K& inKey, ItemVal<K,U>* pItemval);
-      bool DelItemByKey(const K& inKey);
+      ItemVal<K,U>* DelItemByKey(const K& inKey);
       virtual uint32_t HashFunc(const K& inKey, uint32_t len) = 0;
      private:
       uint32_t  HashSize(int32_t n)
@@ -138,6 +164,24 @@ namespace LRU_ALG
       static const int32_t CNT_STATIC_HASHPOWER = 16;
       TYPE_PTR_ITEM_VAL* m_pItemList; // list for  addr of  ItemVal<K,U>
       bool m_bAllocator;
+    };
+
+    /**
+     * @brief: 
+     *   free node list for lru node list 
+     *
+     */
+    template<typename K, typename U>
+    class LruNodeFreeList
+    {
+     public:
+        LruNodeFreeList();
+        virtual ~LruNodeFreeList();
+        ItemVal<K,U>* AllocateNode();
+        bool ReCycleNode(ItemVal<K,U>* pNode);
+     private:
+        ItemVal<K,U>* m_pFreeNodeHead;
+        uint32_t m_uiFreeListCurSize;
     };
 
     /*******************************************************************************
@@ -169,10 +213,12 @@ namespace LRU_ALG
       virtual KVMem<K,U>* NewKVMem() = 0; //lrualg's deriver implement kvmem'dervier
       virtual bool TraverseLruListNode(ItemVal<K,U>* pItem) = 0;
       // 
-      ItemVal<K,U>* m_pHeadLru;
-      ItemVal<K,U>* m_pTailLru;
+      ItemVal<K,U>* m_pHeadLru; //lru list
+      ItemVal<K,U>* m_pTailLru; //lru list
       KVMem<K,U>* m_pkvMem;
       int m_iQueLen;
+      //
+      LruNodeFreeList<K,U>*  m_pFreeList;
     };
 }
 

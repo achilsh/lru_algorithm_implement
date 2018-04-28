@@ -68,7 +68,8 @@ namespace LRU_ALG
     {
         if (p_LruNode == NULL)
         {
-            return false;
+            m_pLruPreNode = NULL;
+            return true;
         }
         p_LruNode->m_pLruNextNode = this;
         m_pLruPreNode = p_LruNode;
@@ -151,7 +152,8 @@ namespace LRU_ALG
         uint32_t uiHashVal = HashFunc(inKey, iLen);
         uint32_t uiIndex = uiHashVal & HashMask();
         pItem = m_pItemList[uiIndex];
-        DEBUG_LOG("hash val: %u, hash index: %d, key: %s", uiHashVal, uiIndex, inKey.c_str());
+        DEBUG_LOG("hash val: %u, hash index: %d, key: %s, hash head: %p",
+                  uiHashVal, uiIndex, inKey.c_str(), pItem);
         
         while(pItem)
         {
@@ -161,6 +163,8 @@ namespace LRU_ALG
                 break;
             } 
             pItem = pItem->GetHashNext();
+            DEBUG_LOG("hash next node addr: %p", pItem);
+            sleep(1);
         }
         return pItem;
     }
@@ -189,11 +193,9 @@ namespace LRU_ALG
                 m_pItemList[uiIndex] = pItemval; //pItemval is heap mem.
                 return true;
             }
-            while(p_HashHead->GetHashNext() != NULL)
-            {
-                p_HashHead = p_HashHead->GetHashNext();
-            }
-            p_HashHead->SetHashNext(pItemval);
+
+            pItemval->SetHashNext(p_HashHead);
+            m_pItemList[uiIndex] = pItemval;
             return true;
         } 
         else 
@@ -205,59 +207,107 @@ namespace LRU_ALG
     }
 
     template<typename K, typename U>
-    bool KVMem<K,U>:: DelItemByKey(const K& inKey)
+    ItemVal<K,U>* KVMem<K,U>:: DelItemByKey(const K& inKey)
     {
         if (m_pItemList == NULL)
         {
-            return false;
+            return NULL;
         }
 
         int iLen = inKey.size();
         uint32_t uiHashVal = HashFunc(inKey, iLen);
         uint32_t uiIndex = uiHashVal & HashMask();
-        ItemVal<K,U>* p_HashHead = m_pItemList[uiIndex];
-        if (p_HashHead == NULL)
+        ItemVal<K,U>* p_ToFindNode = m_pItemList[uiIndex];
+        if (p_ToFindNode == NULL)
         {
-            return false;
+            return NULL;
         }
 
         ItemVal<K,U>* p_PrehashNode = NULL;
-        while (p_HashHead)
+        while (p_ToFindNode)
         {
-            if (p_HashHead->GetKey() == inKey)
+            if (p_ToFindNode->GetKey() == inKey)
             {
                 DEBUG_LOG("find key: %s in hash mem", inKey.c_str());
-                if (m_pItemList[uiIndex] == p_HashHead) //first node
+                if (m_pItemList[uiIndex] == p_ToFindNode) //first node
                 {
-                    DEBUG_LOG("find node is lru hash mem list head");
-                    m_pItemList[uiIndex] = p_HashHead->GetHashNext();
-                    delete p_HashHead;
-                    p_HashHead = NULL;
+                    m_pItemList[uiIndex] = p_ToFindNode->GetHashNext();
+                    DEBUG_LOG("find node is lru hash mem list head, hash list head: %p, next node: %p", 
+                              p_ToFindNode, m_pItemList[uiIndex]);
                 }
                 else 
                 {
-                    p_PrehashNode->SetHashNext(p_HashHead->GetHashNext());
-                    delete p_HashHead;
-                    p_HashHead = NULL;
+                    p_PrehashNode->SetHashNext(p_ToFindNode->GetHashNext());
                 }
-                return true;
+                p_ToFindNode->SetHashNext(NULL);
+                return p_ToFindNode;
             }
 
-            p_PrehashNode = p_HashHead;
-            p_HashHead = p_HashHead->GetHashNext();
+            p_PrehashNode = p_ToFindNode;
+            p_ToFindNode = p_PrehashNode->GetHashNext();
         }
-        return false; 
+        return NULL; 
+    }
+    //------------------------------------------------------------------//
+    //
+    //
+    //------------------------------------------------------------------//
+    template<typename K, typename U>
+    LruNodeFreeList<K,U>::LruNodeFreeList() :m_pFreeNodeHead(NULL), m_uiFreeListCurSize(0)
+    {
     }
 
-    /**  KVMem class implement end ***/           
+    template<typename K, typename U>
+    LruNodeFreeList<K,U>::~LruNodeFreeList()
+    {
+    }
+
+    template<typename K, typename U>
+    ItemVal<K,U>* LruNodeFreeList<K,U>::AllocateNode()
+    {
+        ItemVal<K,U>* pFreeNode = NULL;
+        if (m_uiFreeListCurSize <= 0 || m_pFreeNodeHead == NULL)
+        {
+            DEBUG_LOG("node free list not has useable node");
+            return pFreeNode;
+        }
+        pFreeNode = m_pFreeNodeHead;
+        m_pFreeNodeHead = pFreeNode->GetNextNode();
+        m_uiFreeListCurSize--;
+        //
+        return pFreeNode;
+    }
+
+    template<typename K, typename U>
+    bool LruNodeFreeList<K,U>::ReCycleNode(ItemVal<K,U>* pNode)
+    {
+        if (pNode == NULL)
+        {
+            return true;
+        }
+        pNode->ResetNode();
+        DEBUG_LOG("recycle node to free list node, key: %s, node ptr: %p",
+                  pNode->GetKey().c_str(), pNode);
+        if (m_pFreeNodeHead)
+        {
+            m_pFreeNodeHead->SetLruPreNode(pNode);
+        }
+        m_pFreeNodeHead = pNode;
+        m_uiFreeListCurSize ++;
+        return true;
+    }
+
+
     //------------------------------------------------------------------//
-    //------------------------------------------------------------------//
-    //------------------------------------------------------------------//
+    //
+    //
     //------------------------------------------------------------------//
     template<typename K, typename U>
     LruAlg<K,U>::LruAlg(const int iQueLen): m_pHeadLru(NULL), m_pTailLru(NULL), 
-                                            m_pkvMem(NULL), m_iQueLen(iQueLen)
+                                            m_pkvMem(NULL), m_iQueLen(iQueLen),
+                                            m_pFreeList(NULL)
     {
+        m_pFreeList = new LruNodeFreeList<K,U>();
     }
 
     template<typename K, typename U>
@@ -269,6 +319,12 @@ namespace LRU_ALG
             m_pkvMem = NULL;
         }
         m_pHeadLru = m_pTailLru = NULL;
+        if (m_pFreeList)
+        {
+            delete m_pFreeList;
+            m_pFreeList = NULL;
+        }
+        // 
     }
 
     template<typename K, typename U>
@@ -331,11 +387,14 @@ namespace LRU_ALG
             return false;
         }
         //
-        if ( false == LruAlgNewKVMem()->DelItemByKey(inKey) )
+        ItemVal<K,U>* pDelNode = NULL;
+        pDelNode = LruAlgNewKVMem()->DelItemByKey(inKey);
+        if ( pDelNode == NULL )
         {
             std::cout << "DelItem(), del item node for key: " << inKey << std::endl;
             return false;
         }
+        m_pFreeList->ReCycleNode(pDelNode);
 
         DEBUG_LOG("DelItem() succ, key: %s", inKey.c_str());
         return true;
@@ -352,8 +411,17 @@ namespace LRU_ALG
             return false;
         }
         DEBUG_LOG("new node add to lru hash mem, do next step, key: %s", inKey.c_str());
-
-        ItemVal<K,U>* p_NewItem = new ItemVal<K,U>(inKey, inVal);
+        
+        ItemVal<K,U>* p_NewItem  = NULL;
+        if (m_pFreeList && (NULL != (p_NewItem = m_pFreeList->AllocateNode())))
+        {
+            p_NewItem->SetKeyVal(inKey, inVal);
+            DEBUG_LOG("allocate node from free list, node addr: %p", p_NewItem);
+        }
+        else
+        {
+            p_NewItem = new ItemVal<K,U>(inKey, inVal);
+        }
         if (IsEmptyLru())
         {
             m_pHeadLru =  p_NewItem;
@@ -377,11 +445,12 @@ namespace LRU_ALG
             DEBUG_LOG("lru list is full, add new node need to swap old node, old key: %s", 
                       p_itemTail->GetKey().c_str());
             UnlinkItem(p_itemTail);
-            m_pkvMem->DelItemByKey(p_itemTail->GetKey());
+            LruAlgNewKVMem()->DelItemByKey(p_itemTail->GetKey());
+            m_pFreeList->ReCycleNode(p_itemTail);
             LinkItem(p_NewItem);
         }
         
-        m_pkvMem->AddItemIntoMem(inKey, p_NewItem);
+        LruAlgNewKVMem()->AddItemIntoMem(inKey, p_NewItem);
         return true;
     }
 
@@ -392,6 +461,7 @@ namespace LRU_ALG
         {
             m_pkvMem = NewKVMem();
         }
+        return m_pkvMem;
     }
 
     template<typename K, typename U>
@@ -480,13 +550,11 @@ namespace LRU_ALG
         {
             (m_pHeadLru)->AddLruNode(pItem, PRE_DIR);
             m_pTailLru = m_pHeadLru;
-            pItem->SetHashNext(m_pHeadLru);
             m_pHeadLru = pItem;
             return true;
         }
 
         m_pHeadLru->AddLruNode(pItem, PRE_DIR);
-        pItem->SetHashNext(m_pHeadLru);
         m_pHeadLru = pItem;
         return true;
     }
@@ -503,7 +571,7 @@ namespace LRU_ALG
                 return true;
             }
 
-            pTraverseNode = pTraverseNode->GetHashNext();
+            pTraverseNode = pTraverseNode->GetNextNode();
         }
         return true;
     }

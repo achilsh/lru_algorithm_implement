@@ -13,13 +13,13 @@ all:$(BINARY)
 CXX = g++
 CC = gcc
 
-CXXFLAGS= -g -Wall -ggdb3 -DDEBUG_TEST
+CXXFLAGS= -g -Wall -ggdb3 -DDEBUG_TEST -D_ReDirect
 
 %.o:%.cpp
-	$(CXX) $(CFLAGS) -c $^ $(INC_ALL)
+	$(CXX) $(CXXFLAGS) -c $^ $(INC_ALL)
 
 Lru_test_bin:lru_test_main.o  lru_hash.o
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIB_ALL)
+	$(CXX) $(CXXFLAGS)  -o $@ $^ $(LIB_ALL)
 clean:
 	rm -f *.o *~ $(BINARY)
 

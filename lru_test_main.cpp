@@ -19,7 +19,6 @@
 using namespace LRU_ALG;
 
 
-#define _ReDirect  1
 
 class LruTestItem
 {
@@ -118,17 +117,8 @@ bool TestTwo(int iTestNums)
     DEBUG_LOG("\n\r\n\r==========>>>>>> add item done, nums: %d, next step is get item <<<<<<<<============== \n", iTestNums);
 
     sGetValList.resize(iTestNums);
-#ifndef _ReDirect
-    for (int i = 0; i < iTestNums; ++i)
-    {
-        DEBUG_LOG("------------------------------i: %d",i);
-        if ( false == pTestInstance->GetItem(sKeyList[i], &sGetValList[i]) )
-        {
-            ERROR_LOG("get item fail , key: %s", sKeyList[i].c_str());
-        }
-        sleep(1);
-    }
-#else
+
+#ifdef _ReDirect
     for (int i = iTestNums-1; i >=0 ; --i)
     {
         DEBUG_LOG("------------------------------i: %d",i);
@@ -136,9 +126,20 @@ bool TestTwo(int iTestNums)
         {
             ERROR_LOG("get item fail , key: %s", sKeyList[i].c_str());
         }
+        DEBUG_LOG("val: %d", sGetValList[i].GetX());
         sleep(1);
     }
-
+#else
+    for (int i = 0; i < iTestNums; ++i)
+    {
+        DEBUG_LOG("------------------------------i: %d",i);
+        if ( false == pTestInstance->GetItem(sKeyList[i], &sGetValList[i]) )
+        {
+            ERROR_LOG("get item fail , key: %s, val: %d", sKeyList[i].c_str(), sGetValList[i].GetX());
+        }
+        DEBUG_LOG("val: %d", sGetValList[i].GetX());
+        sleep(1);
+    }
 #endif
 
 
@@ -278,9 +279,9 @@ bool TestFour()
 int main(int argc, char **argv)
 {
     // TestOne();
-    //TestTwo(8);
+    //TestTwo(3);
     //TestTwo(12);
     //TestThree();
-    TestFour();
+    //TestFour();
     return 0;
 }
